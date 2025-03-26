@@ -13,8 +13,8 @@ const TestCollection: React.FC = () => {
   const addTestData = async () => {
     try {
       const newDoc: TestData = {
-        name: "Exemple TypeScript",
-        description: "Ceci est un test avec TSX",
+        name: "Autre",
+        description: "Ceci est un test de test",
         createdAt: new Date(),
       };
 

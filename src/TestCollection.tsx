@@ -1,6 +1,6 @@
 // TestCollection.tsx
 import React from "react";
-import { db, collection, addDoc } from "./firebaseConfig";
+import { db, collection, addDoc } from "./config/firebaseConfig";
 import { Button, Form, FormGroup, Input, Label } from "reactstrap";
 
 // Définition du type pour les données

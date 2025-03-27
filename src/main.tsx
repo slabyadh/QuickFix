@@ -1,13 +1,15 @@
 import ReactDOM from "react-dom/client";
-import { BrowserRouter, Routes, Route } from "react-router";
+import { BrowserRouter } from "react-router-dom"; 
 import App from "./App";
 
 const root = document.getElementById("root");
 
-ReactDOM.createRoot(root as HTMLElement).render(
-  <BrowserRouter>
-    <Routes>
-      <Route path="/" element={<App />} />
-    </Routes>
-  </BrowserRouter>
-);
+if (root) {
+  ReactDOM.createRoot(root as HTMLElement).render(
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
+  );
+} else {
+  console.error("Élément #root introuvable dans le DOM.");
+}

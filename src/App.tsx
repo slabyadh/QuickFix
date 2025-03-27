@@ -1,13 +1,18 @@
-import React from "react";
-import TestCollection from "./TestCollection";
+import { AuthProvider } from "./contexts/auth";
+import { ThemeProvider } from "./contexts/theme";
+import Router from './Router';
+import './App.css';
 
-const App: React.FC = () => {
+function App() {
   return (
-    <div>
-      <h1>Firebase Firestore Test</h1>
-      <TestCollection />
-    </div>
+    <>
+      <AuthProvider>
+        <ThemeProvider defaultTheme="light" storageKey="quickfix-theme">
+          <Router />
+        </ThemeProvider>
+      </AuthProvider>
+    </>
   );
-};
+}
 
 export default App;

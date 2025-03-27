@@ -1,0 +1,48 @@
+.tab-container {
+    display: flex;
+    margin-bottom: 2rem;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--border, #E0E0E0);
+  }
+  
+  .tab {
+    flex: 1;
+    padding: 12px;
+    text-align: center;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    color: var(--foreground, #616161);
+    background-color: var(--secondary, #F5F5F5);
+  }
+  
+  .tab:first-child {
+    border-right: 1px solid var(--border, #E0E0E0);
+  }
+  
+  .tab.active {
+    background-color: var(--primary, #009688);
+    color: var(--primary-foreground, white);
+  }
+  
+  .tab:hover:not(.active) {
+    background-color: var(--border, #E0E0E0);
+  }
+  
+  /* Style pour le select */
+  .form-group select {
+    width: 100%;
+    padding: 0.75rem;
+    font-size: 1rem;
+    border: 1px solid var(--border, #E0E0E0);
+    border-radius: 4px;
+    background-color: var(--background, #FAFAFA);
+    transition: border-color 0.2s ease;
+  }
+  
+  .form-group select:focus {
+    border-color: var(--ring, #4DB6AC);
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(77, 182, 172, 0.2);
+  }

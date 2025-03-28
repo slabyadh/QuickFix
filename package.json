@@ -10,12 +10,12 @@
     "preview": "vite preview",
     "test": "vitest",
     "gateway": "nodemon ./apiGateway/index.js",
-    "mail": "nodemon ./apiGateway/index.js",
+    "mail": "nodemon ./mailMS/index.js",
     "start:gateway": "node apiGateway/index.js",
     "start:producer": "node apiGateway/producer.js",
     "start:mail": "node mailMS/index.js",
     "start:consumer": "node mailMS/consumer.js",
-    "start:all": "concurrently \"npm run start:producer\" \"npm run start:consumer\""
+    "start:all": "concurrently \"npm run start:gateway\" \"npm run start:mail\" \"npm run start:producer\" \"npm run start:consumer\""
   },
   "dependencies": {
     "@eslint/js": "^9.21.0",

@@ -1,5 +1,5 @@
 import amqp from "amqplib";
-const queue = "product_inventory";
+const queue = "task_queue";
 
 (async () => {
   try {
@@ -17,7 +17,7 @@ const queue = "product_inventory";
       await connection.close();
     });
 
-    await channel.assertQueue(queue, { durable: false });
+    await channel.assertQueue(queue, { durable: true });
     await channel.consume(
       queue,
       (message) => {

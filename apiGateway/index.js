@@ -9,8 +9,44 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 
+const RABBITMQ_URL = "amqp://admin:admin@dakara.gganster.fr:5672";
+const QUEUE_NAME = "mail_queue";
+
+async function sendToQueue(message) {
+  try {
+    const connection = await amqp.connect(RABBITMQ_URL);
+    const channel = await connection.createChannel();
+    await channel.assertQueue(QUEUE_NAME, { durable: true });
+
+    channel.sendToQueue(QUEUE_NAME, Buffer.from(JSON.stringify(message)), {
+      persistent: true,
+    });
+
+    console.log("✅ Message envoyé à RabbitMQ :", message);
+
+    await channel.close();
+    await connection.close();
+  } catch (error) {
+    console.error("❌ Erreur RabbitMQ :", error);
+  }
+}
+
+// Endpoint pour tester RabbitMQ
+app.post("/publish", async (req, res) => {
+  const { email, subject, content } = req.body;
+
+  if (!email || !subject || !content) {
+    return res.status(400).json({ error: "Données incomplètes" });
+  }
+
+  const message = { email, subject, content };
+  await sendToQueue(message);
+
+  res.status(200).json({ message: "Message envoyé à RabbitMQ" });
+});
+
 app.get("/", (req, res) => {
-  for (let i = 0; i < 1000000000; i++) {} // Simulate a long-running process
+  for (let i = 0; i < 10000; i++) {} // Simulate a long-running process
   return res.send("OK");
 })
 

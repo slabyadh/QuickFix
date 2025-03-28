@@ -3,8 +3,25 @@ import { useEffect, useState } from 'react';
 import LoginForm from './pages/LoginForm';
 import SignupForm from './pages/SignupForm';
 import useAuth from './contexts/auth'; 
-import Home from './pages/Home'; 
+import HomeParticulier from './pages/home/HomeParticulier';
 
+function isParticulier(user: unknown): boolean {
+  return Boolean(
+    user && 
+    typeof user === 'object' && 
+    'role' in (user as Record<string, unknown>) && 
+    (user as Record<string, unknown>).role === 'particulier'
+  );
+}
+
+function isArtisan(user: unknown): boolean {
+  return Boolean(
+    user && 
+    typeof user === 'object' && 
+    'role' in (user as Record<string, unknown>) && 
+    (user as Record<string, unknown>).role === 'artisan'
+  );
+}
 const Router = () => {
   const { auth, login, register } = useAuth();
   const [loading, setLoading] = useState(true);
@@ -52,24 +69,34 @@ const Router = () => {
     }
   };
 
+  const getUserHomePage = () => {
+    if (!auth.user) return <Navigate to="/login" replace />;
+    
+    if (isParticulier(auth.user)) return <HomeParticulier />;
+    if (isArtisan(auth.user)) return <Navigate to="/home/artisan" replace />;
+    
+    // Si le rôle n'est pas reconnu
+    return <Navigate to="/login" replace />;
+  };
   return (
     <BrowserRouter>
       <div className="app-container">
         <Routes>
           {/* Rediriger vers login si non connecté, vers home si connecté */}
-          <Route path="/" element={
-            auth.user ? <Home /> : <Navigate to="/login" replace />
-          } />
+          <Route path="/" element={auth.user ? getUserHomePage() : <Navigate to="/login" replace />} />
           
-          {/* Route de login - redirige vers home si déjà connecté */}
-          <Route path="/login" element={
-            auth.user ? <Navigate to="/" replace /> : 
-            <LoginForm onSubmit={handleLogin} onSignupClick={() => window.location.href = '/signup'} />
+          //mettre en place getUserHomePage
+           {/* Routes d'authentification avec ternaires */}
+           <Route path="/login" element={
+            !auth.user ? 
+            <LoginForm onSubmit={handleLogin} onSignupClick={() => window.location.href = '/signup'} /> :
+            isParticulier(auth.user) ? <HomeParticulier /> :
+            isArtisan(auth.user) ? <Navigate to="/home/HomeArtisan" replace /> :
+            <Navigate to="/login" replace />
           } />
           
           {/* Route d'inscription - redirige vers home si déjà connecté */}
-          <Route path="/signup" element={
-            auth.user ? <Navigate to="/" replace /> :
+          <Route path="/signup" element={auth.user ? getUserHomePage() : 
             <SignupForm onSubmit={handleSignup} onLoginClick={() => window.location.href = '/login'} />
           } />
           

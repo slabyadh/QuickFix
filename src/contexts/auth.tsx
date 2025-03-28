@@ -19,7 +19,8 @@ import { getFirestore, setDoc, doc, getDoc } from "firebase/firestore";
 
 // Définir les types
 interface AuthState {
-  user: User | null;
+  user: (User & UserData) | null;
+  userDataLoaded: boolean; // To track if user data has been loaded
 }
 
 interface AuthContextType {
@@ -56,8 +57,28 @@ const auth = getAuth();
 // Création du contexte avec un type
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Définition d'une interface pour les données utilisateur étendues
+interface UserData {
+  role?: 'particulier' | 'artisan';
+  nomPrenom?: string;
+  adresse?: string;
+  telephone?: string;
+  specialite?: string;
+  siret?: string;
+  statutLogement?: 'locataire' | 'proprietaire';
+  // autres champs personnalisés
+}
+
+// État combinant l'utilisateur Firebase et les données Firestore
+interface AuthState {
+  user: (User & UserData) | null;
+  userDataLoaded: boolean; // Pour suivre si les données ont été chargées
+}
+
+// Valeur initiale
 const DefaultState: AuthState = {
   user: null,
+  userDataLoaded: false
 };
 
 const AuthReducer = (state: AuthState, action: AuthAction): AuthState => {
@@ -145,33 +166,39 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     };
   
     useEffect(() => {
-      const unsubscribe = onAuthStateChanged(auth, async (user) => {
-        if (user) {
+      const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+        if (firebaseUser) {
           try {
-            const userDocRef = doc(db, "users", user.uid);
+            // Récupérer les données supplémentaires depuis Firestore
+            const userDocRef = doc(db, "users", firebaseUser.uid);
             const userDocSnap = await getDoc(userDocRef);
             
             if (userDocSnap.exists()) {
-              // On ne peut pas simplement étendre user avec les données Firestore
-              // car user est un objet avec des méthodes non-énumérables
-              dispatch({ type: "LOGIN", payload: user });
-            } else {
-              // Si l'utilisateur n'existe pas dans Firestore, essayez de le créer
-              await setDoc(doc(db, "users", user.uid), {
-                createdAt: new Date(),
-                email: user.email || "",
+              // Combiner l'utilisateur Firebase avec les données Firestore
+              const userData = userDocSnap.data() as UserData;
+              const enrichedUser = {
+                ...firebaseUser,
+                ...userData
+              };
+              
+              dispatch({ 
+                type: "LOGIN", 
+                payload: enrichedUser as (User & UserData)
               });
-              dispatch({ type: "LOGIN", payload: user });
+            } else {
+              // Si pas de document, utiliser juste l'utilisateur Firebase
+              dispatch({ type: "LOGIN", payload: firebaseUser as (User & UserData) });
             }
           } catch (error) {
             console.error("Erreur lors de la récupération des données utilisateur:", error);
-            dispatch({ type: "LOGIN", payload: user });
+            dispatch({ type: "LOGIN", payload: firebaseUser as (User & UserData) });
+          } finally {
+            setLoading(false);
           }
         } else {
-          // L'utilisateur n'est pas connecté, ne pas essayer l'authentification anonyme
           dispatch({ type: "LOGIN", payload: null });
+          setLoading(false);
         }
-        setLoading(false);
       });
       
       return () => unsubscribe();

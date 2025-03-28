@@ -1,0 +1,19 @@
+config:
+  target: "http://localhost:3000"
+  phases:
+    - duration: 60
+      arrivalRate: 20
+      name: "Warming up"
+    - duration: 240
+      arrivalRate: 20
+      rampTo: 100
+      name: "Ramping up"
+    - duration: 500
+      arrivalRate: 100
+      name: "Sustained load"
+
+scenarios:
+  - name: "Test de charge API Gateway"
+    flow:
+      - get:
+          url: "/"

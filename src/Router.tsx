@@ -3,7 +3,8 @@ import { useEffect, useState } from 'react';
 import LoginForm from './pages/LoginForm';
 import SignupForm from './pages/SignupForm';
 import useAuth from './contexts/auth'; 
-import Home from './pages/Home'; 
+import Home from './pages/Home';
+import HomeArtisan from './pages/home/HomeArtisan'; 
 
 const Router = () => {
   const { auth, login, register } = useAuth();
@@ -57,22 +58,70 @@ const Router = () => {
       <div className="app-container">
         <Routes>
           {/* Rediriger vers login si non connecté, vers home si connecté */}
-          <Route path="/" element={
-            auth.user ? <Home /> : <Navigate to="/login" replace />
-          } />
-          
+          {/* <Route
+            path="/"
+            element={
+              auth.user ? (
+                auth.user?.role === "particulier" ? (
+                  <HomeParticulier />
+                ) : auth.user?.role === "artisan" ? (
+                  <HomeArtisan />
+                ) : (
+                  <>
+                    {console.warn(`Rôle non reconnu: ${auth.user?.role}`)}
+                    <Navigate to="/login" replace />
+                  </>
+                )
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
+          /> */}
+          <Route
+            path="/"
+            element={
+              auth.user ? (
+                auth.user?.role === "artisan" ? (
+                  <Navigate to="/home/artisan" replace />
+                ) : (
+                  <Home />
+                )
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
+          />
+
           {/* Route de login - redirige vers home si déjà connecté */}
-          <Route path="/login" element={
-            auth.user ? <Navigate to="/" replace /> : 
-            <LoginForm onSubmit={handleLogin} onSignupClick={() => window.location.href = '/signup'} />
-          } />
-          
+          <Route
+            path="/login"
+            element={
+              auth.user ? (
+                <Navigate to="/" replace />
+              ) : (
+                <LoginForm
+                  onSubmit={handleLogin}
+                  onSignupClick={() => (window.location.href = "/signup")}
+                />
+              )
+            }
+          />
+
           {/* Route d'inscription - redirige vers home si déjà connecté */}
-          <Route path="/signup" element={
-            auth.user ? <Navigate to="/" replace /> :
-            <SignupForm onSubmit={handleSignup} onLoginClick={() => window.location.href = '/login'} />
-          } />
-          
+          <Route
+            path="/signup"
+            element={
+              auth.user ? (
+                <Navigate to="/" replace />
+              ) : (
+                <SignupForm
+                  onSubmit={handleSignup}
+                  onLoginClick={() => (window.location.href = "/login")}
+                />
+              )
+            }
+          />
+
           {/* Redirection par défaut si aucune route ne correspond */}
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>

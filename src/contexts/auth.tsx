@@ -16,6 +16,9 @@ import {
   User,
 } from "firebase/auth";
 import { getFirestore, setDoc, doc, getDoc } from "firebase/firestore";
+import { useNavigate } from "react-router-dom";
+
+const navigate = useNavigate();
 
 // Définir les types
 interface AuthState {
@@ -79,8 +82,27 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   
     const login = async (email: string, password: string): Promise<void> => {
       try {
-        await signInWithEmailAndPassword(auth, email, password);
-        // La gestion de l'état utilisateur se fait via onAuthStateChanged
+        const userCredential = await signInWithEmailAndPassword(
+          auth,
+          email,
+          password
+        );
+        const user = userCredential.user;
+
+        // Récupérer les infos utilisateur depuis Firestore
+        const userDocRef = doc(db, "users", user.uid);
+        const userDocSnap = await getDoc(userDocRef);
+
+        if (userDocSnap.exists()) {
+          const userData = userDocSnap.data();
+
+          // Rediriger en fonction du rôle
+          if (userData.role === "artisan") {
+            navigate("/home/artisan");
+          } else {
+            navigate("/home"); // Rediriger les autres utilisateurs vers la page par défaut
+          }
+        }
       } catch (e) {
         console.error(e);
         throw e;
@@ -89,43 +111,55 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   
     // Importez cette fonction depuis firebase/auth
     const register = async (userData: {
-        email: string;
-        password: string;
-        nomPrenom: string;  // Changé de name à nomPrenom
-        adresse: string;    // Ajouté
-        telephone: string;  // Ajouté
-        role: 'particulier' | 'artisan';
-        specialite?: string;  // Changé de specialty à specialite
-        siret?: string;
-        statutLogement?: 'locataire' | 'proprietaire';  // Ajouté
-      }): Promise<void> => {
+      email: string;
+      password: string;
+      nomPrenom: string;
+      adresse: string;
+      telephone: string;
+      role: "particulier" | "artisan";
+      specialite?: string;
+      siret?: string;
+      statutLogement?: "locataire" | "proprietaire";
+    }): Promise<void> => {
       try {
-        // Utiliser createUserWithEmailAndPassword au lieu de linkWithCredential
-        const { createUserWithEmailAndPassword } = await import('firebase/auth');
-        const userCredential = await createUserWithEmailAndPassword(auth, userData.email, userData.password);
-        
+        const { createUserWithEmailAndPassword } = await import(
+          "firebase/auth"
+        );
+        const userCredential = await createUserWithEmailAndPassword(
+          auth,
+          userData.email,
+          userData.password
+        );
+
         await setDoc(doc(db, "users", userCredential.user.uid), {
-            nomPrenom: userData.nomPrenom,
-            email: userData.email,
-            adresse: userData.adresse,
-            telephone: userData.telephone,
-            role: userData.role,
-            createdAt: new Date(),
-            // Ajouter les champs spécifiques selon le type d'utilisateur
-            ...(userData.role === 'artisan' ? {
+          nomPrenom: userData.nomPrenom,
+          email: userData.email,
+          adresse: userData.adresse,
+          telephone: userData.telephone,
+          role: userData.role,
+          createdAt: new Date(),
+          ...(userData.role === "artisan"
+            ? {
                 specialite: userData.specialite,
-                siret: userData.siret
-            } : {
-                statutLogement: userData.statutLogement
-            })
+                siret: userData.siret,
+              }
+            : {
+                statutLogement: userData.statutLogement,
+              }),
         });
-        
-        // La mise à jour de l'état sera gérée par onAuthStateChanged
+
+        // Redirection après l'inscription
+        if (userData.role === "artisan") {
+          navigate("/home/artisan");
+        } else {
+          navigate("/home");
+        }
       } catch (e) {
         console.error(e);
         throw e;
       }
     };
+
   
     const logout = (): void => {
       setLoading(true);

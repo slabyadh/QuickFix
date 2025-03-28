@@ -10,7 +10,8 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 app.get("/", (req, res) => {
-  res.send("Welcome to the api gateway");
+  for (let i = 0; i < 1000000000; i++) {} // Simulate a long-running process
+  return res.send("OK");
 })
 
 app.listen(3000, () => {
